@@ -13,6 +13,7 @@ let newTileTimeout;  // 生成新块的延时函数
 let currentScore = 0;
 let bestScore = 0;
 let scoreAdd = 0;
+let moveSpeed = 8;
 
 function draw_tile(Tile, tileType) {
     // console.log("draw-start");
@@ -24,13 +25,9 @@ function draw_tile(Tile, tileType) {
         let inner = document.createElement("div");
         // console.log(x, y);
         // console.log(tiles[x][y]);
-        if (tiles[x][y] <= 8192) {
-            className = "tile tile-{0} tile-position-{1}-{2}".format(tiles[x][y], x + 1, y + 1);
-        } else if (tiles[x][y] === 131072) {
-            className = "tile tile-{0} tile-position-{1}-{2}".format("max", x + 1, y + 1);
-        } else {
-            className = "tile tile-{0} tile-position-{1}-{2}".format("super", x + 1, y + 1);
-        }
+
+        className = "tile tile-{0} tile-position-{1}-{2}".format(tiles[x][y], x + 1, y + 1);
+
         if (tileType === 1) {
             tile.className = className + " tile-new";
         } else if (tileType === 2) {
@@ -126,7 +123,7 @@ function MoveQueue() {
                 overJudge();
             }
         }
-    }, 95)
+    }, moveSpeed * 12)
 }
 
 function moveUp() {
@@ -386,9 +383,11 @@ function newTile() {
         position = (position + 1) % 16;
     }
     tiles[Math.floor(position / 4)][position % 4] = tileNum;
-    newTileTimeout = setTimeout(function () {
-        draw_tile([position], 1);
-    }, 90);
+    // newTileTimeout = setTimeout(function () {
+    //     draw_tile([position], 1);
+    // }, moveSpeed * 6);
+
+    draw_tile([position], 1);
 }
 
 function moveTile(oldPos, newPos) {
@@ -413,34 +412,9 @@ function moveTile(oldPos, newPos) {
                 tile.removeAttribute("style");
                 clearInterval(interval);
             }
-        }, 8);
+        }, moveSpeed);
     }
 }
-
-// function tileDelete() {  // 删除旧的方块
-//     // console.log("delete-start");
-//     for (let i = 1; i <= 4; ++i) {
-//         for (let j = 1; j <= 4; ++j) {
-//             let tile = getClass("tile-position-" + i + "-" + j);
-//             for (let k = 0; k < tile.length; ++k) {
-//                 if (tile[k].className.indexOf("tile-merged") >= 0) {
-//                     for (let l = 0; l < tile.length; ++l) {
-//                         if (tile[l].className.indexOf("tile-merged") >= 0) {
-//                             tile[l].classList.remove("tile-merged");
-//                         } else {
-//                             // console.log(tile[l]);
-//                             tileContainer.removeChild(tile[l]);
-//                         }
-//                     }
-//                     break;
-//                 } else if (tile[k].className.indexOf("tile-new")) {
-//                     tile[k].classList.remove("tile-new");
-//                 }
-//             }
-//         }
-//     }
-//     // console.log("dtlete-end");
-// }
 
 function tileCheck() {  // 核对并修正页面中方块与数组中方块一致
     clearTimeout(newTileTimeout);
@@ -452,14 +426,8 @@ function tileCheck() {  // 核对并修正页面中方块与数组中方块一�
                     tileContainer.removeChild(tile[k])
                 }
             } else {
-                let className;
-                if (tiles[i][j] === 131072) {
-                    className = "tile-max";
-                } else if (tiles[i][j] <= 8192) {
-                    className = "tile-" + tiles[i][j];
-                } else {
-                    className = "tile-super";
-                }
+                let className = "tile-" + tiles[i][j];
+
                 if (tile.length === 0) {
                     draw_tile([i * 4 + j], 0);
                 } else {
@@ -624,8 +592,10 @@ window.onload = function () {
     MoveQueue();
     let a = getClass("restart-game")[0];
     a.addEventListener("click", restart, false);
+    a.addEventListener("touchend", restart, false);
     let a2 = getClass("retry-button")[0];
     a2.addEventListener("click", restart, false);
+    a2.addEventListener("touchend", restart, false);
     let gameContainer = getClass("game-container")[0];
     gameContainer.addEventListener("mousedown", mouseDown, false);
     gameContainer.addEventListener("mouseup", mouseUp, false);
@@ -633,5 +603,28 @@ window.onload = function () {
     gameContainer.addEventListener("touchstart", mouseDown, false);
     gameContainer.addEventListener("touchend", mouseUp, false);
     gameContainer.addEventListener("touchmove", mouseMove, false);
-
+    if (/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)) {
+        moveSpeed = 5;
+    } else {
+        moveSpeed = 8;
+    }
 };
+
+function test(c) {
+    let cc = c;
+    for (let i = 0; i < 4; ++i) {
+        if (i % 2) {
+            for (let j = 3; j >= 0; --j) {
+                tiles[i][j] = cc;
+                cc *= 2;
+            }
+        } else {
+            for (let j = 0; j < 4; ++j) {
+                tiles[i][j] = cc;
+                cc *= 2;
+            }
+        }
+    }
+    tiles[0][0] = c * 2;
+    tileCheck();
+}

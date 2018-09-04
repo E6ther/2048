@@ -536,14 +536,22 @@ let startX, startY;
 
 function mouseDown(e) {
     e = e || window.event;
+    e.preventDefault();
     // console.log("st ", e);
     startX = e.screenX || e.changedTouches[0].screenX;
     startY = e.screenY || e.changedTouches[0].screenY;
     // console.log("start ", startX, startY);
+    // return false;
+}
+
+function mouseMove(e) {
+    // console.log("move");
+    e.preventDefault();
 }
 
 function mouseUp(e) {
     e = e || window.event;
+    e.preventDefault();
     // console.log("end ", e);
     let endX = e.screenX || e.changedTouches[0].screenX;
     let endY = e.screenY || e.changedTouches[0].screenY;
@@ -564,6 +572,7 @@ function mouseUp(e) {
             moveQueue.push(3);
         }
     }
+    // return false;
 }
 
 
@@ -620,7 +629,9 @@ window.onload = function () {
     let gameContainer = getClass("game-container")[0];
     gameContainer.addEventListener("mousedown", mouseDown, false);
     gameContainer.addEventListener("mouseup", mouseUp, false);
+    gameContainer.addEventListener("mousemove", mouseMove, false);
     gameContainer.addEventListener("touchstart", mouseDown, false);
     gameContainer.addEventListener("touchend", mouseUp, false);
+    gameContainer.addEventListener("touchmove", mouseMove, false);
 
 };

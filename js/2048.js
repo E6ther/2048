@@ -1,30 +1,16 @@
-let tiles = new Array(4);
-for (let i = 0; i < 4; ++i) {
-    tiles[i] = new Array(4);
-    for (let j = 0; j < 4; ++j) {
-        tiles[i][j] = 0;
-    }
-}
-
 let tileContainer = document.getElementsByClassName("tile-container")[0];
-let moveQueue = [];
-let keyBan = [false, false, false, false];
-let newTileTimeout;  // 生成新块的延时函数
+let winFlag = 0;
 let currentScore = 0;
 let bestScore = 0;
 let scoreAdd = 0;
-let moveSpeed = 8;
 
 function draw_tile(Tile, tileType) {
-    // console.log("draw-start");
     for (let i = 0; i < Tile.length; ++i) {
         let x = Math.floor(Tile[i] / 4);
         let y = Tile[i] % 4;
         let className;
         let tile = document.createElement("div");
         let inner = document.createElement("div");
-        // console.log(x, y);
-        // console.log(tiles[x][y]);
 
         className = "tile tile-{0} tile-position-{1}-{2}".format(tiles[x][y], x + 1, y + 1);
 
@@ -41,93 +27,61 @@ function draw_tile(Tile, tileType) {
         tile.appendChild(inner);
         tileContainer.appendChild(tile);
     }
-    // console.log("draw-end");
 }
 
 window.document.onkeydown = function (e) {
     e = e || window.event;
 
-    // tileDelete();
     if (e && (e.keyCode === 38 || e.keyCode === 75 || e.keyCode === 87)) {
         // 38:方向上    75:K(vim上)    87:W
-        // moveUp();
-        moveQueue.push(1);
-        // Move();
+        Move(1);
         return false;
     } else if (e && (e.keyCode === 40 || e.keyCode === 74 || e.keyCode === 83)) {
         // 40:方向下    74:J(vim下)    87:S
-        // moveDown();
-        moveQueue.push(2);
-        // Move();
+        Move(2);
         return false;
     } else if (e && (e.keyCode === 37 || e.keyCode === 72 || e.keyCode === 65)) {
         // 37:方向左    72:H(vim左)    65:A
-        // moveLeft();
-        moveQueue.push(3);
-        // Move();
+        Move(3);
         return false;
     } else if (e && (e.keyCode === 39 || e.keyCode === 76 || e.keyCode === 68)) {
         // 39:方向右    76:L(vim右)    68:D
-        // moveRight();
-        moveQueue.push(4);
-        // Move();
+        Move(4);
         return false;
     }
-    // tileCheck();
 };
 
 
-function MoveQueue() {
-    // let interval =
-    setInterval(function () {
-        if (moveQueue.length === 0) {
-            // clearInterval(interval);
-            // console.log("check");
-            // tileCheck();
-            // tileDelete();
-            // console.log("--111--");
-        } else {
-            let newFlag = false;
-            let keyType = moveQueue.shift();
-            let keyDownFlag = true;
-            while (keyBan[keyType - 1]) {
-                if (moveQueue.length === 0) {
-                    keyDownFlag = false;
-                    // console.log("keyban-kazhu");
-                    break;
-                }
-                keyType = moveQueue.shift();
-            }
-            if (keyDownFlag) {
-                // console.log("--------");
-                tileCheck();
-                switch (keyType) {
-                    case 1 :
-                        newFlag = moveUp();
-                        break;
-                    case 2 :
-                        newFlag = moveDown();
-                        break;
-                    case 3 :
-                        newFlag = moveLeft();
-                        break;
-                    case 4 :
-                        newFlag = moveRight();
-                        break;
-                }
-                if (newFlag) {
-                    newTile();
-                    updateScore();
-                }
-
-                overJudge();
-            }
+function Move(keyType) {
+    if (winFlag !== 1) {
+        let newFlag;
+        tileCheck();
+        switch (keyType) {
+            case 1 :
+                newFlag = moveUp();
+                break;
+            case 2 :
+                newFlag = moveDown();
+                break;
+            case 3 :
+                newFlag = moveLeft();
+                break;
+            case 4 :
+                newFlag = moveRight();
+                break;
         }
-    }, moveSpeed * 12)
+        if (newFlag) {
+            newTile();
+            updateScore();
+        }
+
+        if (overJudge() === false && winFlag === 0) {
+            winJudge();
+        }
+    }
 }
 
 function moveUp() {
-    // console.log("upup");
     let mergeTile = [];
     let newFlag = false;
     for (let i = 0; i < 3; ++i) {
@@ -173,18 +127,10 @@ function moveUp() {
         }
     }
     draw_tile(mergeTile, 2);
-    if (newFlag === false) {
-        keyBan[0] = true;
-    } else {
-        for (let i = 0; i < keyBan.length; ++i) {
-            keyBan[i] = false;
-        }
-    }
     return newFlag;
 }
 
 function moveDown() {
-    // console.log("down");
     let mergeTile = [];
     let newFlag = false;
     for (let i = 3; i > 0; --i) {
@@ -230,18 +176,10 @@ function moveDown() {
         }
     }
     draw_tile(mergeTile, 2);
-    if (newFlag === false) {
-        keyBan[1] = true;
-    } else {
-        for (let i = 0; i < keyBan.length; ++i) {
-            keyBan[i] = false;
-        }
-    }
     return newFlag;
 }
 
 function moveLeft() {
-    // console.log("left");
     let mergeTile = [];
     let newFlag = false;
     for (let i = 0; i < 3; ++i) {
@@ -287,18 +225,10 @@ function moveLeft() {
         }
     }
     draw_tile(mergeTile, 2);
-    if (newFlag === false) {
-        keyBan[2] = true;
-    } else {
-        for (let i = 0; i < keyBan.length; ++i) {
-            keyBan[i] = false;
-        }
-    }
     return newFlag;
 }
 
 function moveRight() {
-    // console.log("Right");
     let mergeTile = [];
     let newFlag = false;
     for (let i = 3; i > 0; --i) {
@@ -344,28 +274,19 @@ function moveRight() {
         }
     }
     draw_tile(mergeTile, 2);
-    if (newFlag === false) {
-        keyBan[3] = true;
-    } else {
-        for (let i = 0; i < keyBan.length; ++i) {
-            keyBan[i] = false;
-        }
-    }
     return newFlag;
 }
 
 function restart() {
     for (let i = 0; i < 4; ++i) {
-        keyBan[i] = false;
         for (let j = 0; j < 4; ++j) {
             tiles[i][j] = 0;
         }
     }
-    moveQueue = [];
-    clearTimeout(newTileTimeout);
     currentScore = 0;
     let gameMessage = getClass("game-message")[0];
     gameMessage.classList.remove("game-over");
+    gameMessage.classList.remove("game-won");
     tileCheck();
     updateScore();
     newTile();
@@ -383,41 +304,22 @@ function newTile() {
         position = (position + 1) % 16;
     }
     tiles[Math.floor(position / 4)][position % 4] = tileNum;
-    // newTileTimeout = setTimeout(function () {
-    //     draw_tile([position], 1);
-    // }, moveSpeed * 6);
 
     draw_tile([position], 1);
 }
 
 function moveTile(oldPos, newPos) {
-    let tileWidth = 110;
-    let currentX = Math.floor(oldPos / 4) * tileWidth;
-    let currentY = oldPos % 4 * tileWidth;
-    let newX = Math.floor(newPos / 4) * tileWidth;
-    let newY = newPos % 4 * tileWidth;
-    let offsetX = (newX - currentX) / 10;
-    let offsetY = (newY - currentY) / 10;
     let oldClassName = "tile-position-{0}-{1}".format(Math.floor(oldPos / 4) + 1, oldPos % 4 + 1);
     let newClassName = "tile-position-{0}-{1}".format(Math.floor(newPos / 4) + 1, newPos % 4 + 1);
     let tile = getClass(oldClassName)[0];
 
     if (tile) {
-        tile.removeAttribute("style");
-        let interval = setInterval(function () {
-            tile.style.transform = "translate({0}px, {1}px)".format(currentY += offsetY, currentX += offsetX);
-            if (currentX === newX && currentY === newY) {
-                tile.classList.remove(oldClassName);
-                tile.classList.add(newClassName);
-                tile.removeAttribute("style");
-                clearInterval(interval);
-            }
-        }, moveSpeed);
+        tile.classList.remove(oldClassName);
+        tile.classList.add(newClassName);
     }
 }
 
 function tileCheck() {  // 核对并修正页面中方块与数组中方块一致
-    clearTimeout(newTileTimeout);
     for (let i = 0; i < 4; ++i) {
         for (let j = 0; j < 4; ++j) {
             let tile = getClass("tile-position-{0}-{1}".format(i + 1, j + 1));
@@ -496,8 +398,30 @@ function overJudge() {
     }
 
     let gameMessage = getClass("game-message")[0];
+    let p = gameMessage.getElementsByTagName("p")[0];
+    p.innerHTML = "Game over!";
     gameMessage.classList.add("game-over");
     return true;
+}
+
+function winJudge() {
+    for (let i = 0; i < 4; ++i) {
+        for (let j = 0; j < 4; ++j) {
+            if (tiles[i][j] === 2048 && winFlag === 0) {
+                let gameMessage = getClass("game-message")[0];
+                let p = gameMessage.getElementsByTagName("p")[0];
+                p.innerHTML = "You win!";
+                gameMessage.classList.add("game-won");
+                winFlag = 1;
+            }
+        }
+    }
+}
+
+function keepGoing() {
+    winFlag = -1;
+    let gameMessage = getClass("game-message")[0];
+    gameMessage.classList.remove("game-won");
 }
 
 let startX, startY;
@@ -505,42 +429,36 @@ let startX, startY;
 function mouseDown(e) {
     e = e || window.event;
     e.preventDefault();
-    // console.log("st ", e);
     startX = e.screenX || e.changedTouches[0].screenX;
     startY = e.screenY || e.changedTouches[0].screenY;
-    // console.log("start ", startX, startY);
-    // return false;
 }
 
 function mouseMove(e) {
-    // console.log("move");
     e.preventDefault();
 }
 
 function mouseUp(e) {
     e = e || window.event;
     e.preventDefault();
-    // console.log("end ", e);
+
     let endX = e.screenX || e.changedTouches[0].screenX;
     let endY = e.screenY || e.changedTouches[0].screenY;
     let offsetX = endX - startX;
     let offsetY = endY - startY;
-    // console.log("end ", endX, endY);
-    // console.log(offsetX, offsetY);
+
     if (Math.abs(offsetX) < Math.abs(offsetY)) {
         if (offsetY > 50) {
-            moveQueue.push(2);
+            Move(2);
         } else if (offsetY < -50) {
-            moveQueue.push(1);
+            Move(1);
         }
     } else {
         if (offsetX > 50) {
-            moveQueue.push(4);
+            Move(4);
         } else if (offsetX < -50) {
-            moveQueue.push(3);
+            Move(3);
         }
     }
-    // return false;
 }
 
 
@@ -589,13 +507,18 @@ function getClass(className, oParent) {
 
 window.onload = function () {
     restart();
-    MoveQueue();
-    let a = getClass("restart-game")[0];
-    a.addEventListener("click", restart, false);
-    a.addEventListener("touchend", restart, false);
-    let a2 = getClass("retry-button")[0];
-    a2.addEventListener("click", restart, false);
-    a2.addEventListener("touchend", restart, false);
+
+    let restartButton = getClass("restart-game")[0];
+    restartButton.addEventListener("click", restart, false);
+
+    let retry = getClass("retry-button")[0];
+    retry.addEventListener("click", restart, false);
+    retry.addEventListener("touchend", restart, false);
+
+    let keepGoingButton = getClass("keep-playing-button")[0];
+    keepGoingButton.addEventListener("click", keepGoing, false);
+    keepGoingButton.addEventListener("touchend", keepGoing, false);
+
     let gameContainer = getClass("game-container")[0];
     gameContainer.addEventListener("mousedown", mouseDown, false);
     gameContainer.addEventListener("mouseup", mouseUp, false);
@@ -603,11 +526,6 @@ window.onload = function () {
     gameContainer.addEventListener("touchstart", mouseDown, false);
     gameContainer.addEventListener("touchend", mouseUp, false);
     gameContainer.addEventListener("touchmove", mouseMove, false);
-    if (/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)) {
-        moveSpeed = 5;
-    } else {
-        moveSpeed = 8;
-    }
 };
 
 function test(c) {
@@ -627,4 +545,12 @@ function test(c) {
     }
     tiles[0][0] = c * 2;
     tileCheck();
+}
+
+let tiles = new Array(4);
+for (let i = 0; i < 4; ++i) {
+    tiles[i] = new Array(4);
+    for (let j = 0; j < 4; ++j) {
+        tiles[i][j] = 0;
+    }
 }

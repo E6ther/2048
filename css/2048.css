@@ -1059,7 +1059,7 @@ h1.title {
         line-height: 60px;
     }
 
-    .restart-game, game-revoke, .game-redo {
+    .restart-game, .game-revoke, .game-redo {
         border-radius: 6px;
         padding: 0 14px;
         height: 60px;

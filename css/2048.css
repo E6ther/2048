@@ -247,7 +247,7 @@ h1.title {
     margin-bottom: 0;
 }
 
-.restart-game {
+.restart-game, .game-revoke, .game-redo {
     float: right;
     background: #8f7a66;
     border-radius: 3px;
@@ -687,6 +687,31 @@ h1.title {
     animation-fill-mode: backwards;
 }
 
+.RandR {
+    margin-top: 10px;
+}
+
+.RandR:after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.game-revoke {
+    float: left;
+    width: 30%;
+}
+
+.game-redo {
+    float: right;
+    width: 30%;
+}
+
+.game-redo[class~="disable"], .game-revoke[class~="disable"] {
+    background: #444444;
+}
+
+
 .game-explanation {
     margin-top: 20px;
 }
@@ -760,7 +785,7 @@ h1.title {
         width: 55%;
     }
 
-    .restart-game {
+    .restart-game, game-revoke, .game-redo {
         border-radius: 3px;
         padding: 0;
         height: 40px;
@@ -1034,7 +1059,7 @@ h1.title {
         line-height: 60px;
     }
 
-    .restart-game {
+    .restart-game, game-revoke, .game-redo {
         border-radius: 6px;
         padding: 0 14px;
         height: 60px;

@@ -1,10 +1,17 @@
-let tileContainer = document.getElementsByClassName("tile-container")[0];
+let tileContainer;
+let tiles = [];
 let winFlag = 0;
 let currentScore = 0;
 let bestScore = 0;
 let scoreAdd = 0;
+let gridStack = [];
+let redoStack = [];
+let startX, startY;
 
+// 向网页中添加新方块
 function draw_tile(Tile, tileType) {
+    // tileType 1:新方块  2:合并方块  3:其他方块
+
     for (let i = 0; i < Tile.length; ++i) {
         let x = Math.floor(Tile[i] / 4);
         let y = Tile[i] % 4;
@@ -29,6 +36,7 @@ function draw_tile(Tile, tileType) {
     }
 }
 
+// 绑定键盘事件
 window.document.onkeydown = function (e) {
     e = e || window.event;
 
@@ -51,11 +59,12 @@ window.document.onkeydown = function (e) {
     }
 };
 
-
+// 移动
 function Move(keyType) {
     if (winFlag !== 1) {
         let newFlag;
         tileCheck();
+        let gridStr = grid2string();
         switch (keyType) {
             case 1 :
                 newFlag = moveUp();
@@ -70,17 +79,33 @@ function Move(keyType) {
                 newFlag = moveRight();
                 break;
         }
-        if (newFlag) {
-            newTile();
-            updateScore();
-        }
-
-        if (overJudge() === false && winFlag === 0) {
-            winJudge();
-        }
+        afterMove(newFlag, gridStr);
     }
 }
 
+// 移动方块之后的后续工作
+function afterMove(newFlag, gridStr) {
+    if (newFlag) {
+        newTile();
+        updateScore();
+        gridStore(gridStr);
+
+        // 清空重做栈
+        redoStack = [];
+    }
+
+    if (overJudge()) {
+        gameOver();
+    } else if (winFlag === 0 && winJudge()) {
+        gameWin();
+    } else {
+        gameStore();
+        revokeJudge();
+        redoJudge();
+    }
+}
+
+// 上移
 function moveUp() {
     let mergeTile = [];
     let newFlag = false;
@@ -130,6 +155,7 @@ function moveUp() {
     return newFlag;
 }
 
+// 下移
 function moveDown() {
     let mergeTile = [];
     let newFlag = false;
@@ -179,6 +205,7 @@ function moveDown() {
     return newFlag;
 }
 
+// 左移
 function moveLeft() {
     let mergeTile = [];
     let newFlag = false;
@@ -228,6 +255,7 @@ function moveLeft() {
     return newFlag;
 }
 
+// 右移
 function moveRight() {
     let mergeTile = [];
     let newFlag = false;
@@ -277,22 +305,40 @@ function moveRight() {
     return newFlag;
 }
 
+// 新的游戏
 function restart() {
+    // 棋盘数组清零
     for (let i = 0; i < 4; ++i) {
         for (let j = 0; j < 4; ++j) {
             tiles[i][j] = 0;
         }
     }
+
+    // 分数清零
     currentScore = 0;
+
+    // 去掉两种提示框
     let gameMessage = getClass("game-message")[0];
     gameMessage.classList.remove("game-over");
     gameMessage.classList.remove("game-won");
+
+    let storage = window.localStorage;
+    storage.removeItem("gameStatus");
+
+    // 清空两个数组
+    gridStack = [];
+    redoStack = [];
+    revokeJudge();
+    redoJudge();
+
+    //
     tileCheck();
     updateScore();
     newTile();
     newTile();
 }
 
+// 产生新方块
 function newTile() {
     // 24出现概率为(chance-1):1
     let chance = 21;
@@ -308,6 +354,7 @@ function newTile() {
     draw_tile([position], 1);
 }
 
+// 将方块从oldPos移动到newPos
 function moveTile(oldPos, newPos) {
     let oldClassName = "tile-position-{0}-{1}".format(Math.floor(oldPos / 4) + 1, oldPos % 4 + 1);
     let newClassName = "tile-position-{0}-{1}".format(Math.floor(newPos / 4) + 1, newPos % 4 + 1);
@@ -319,7 +366,8 @@ function moveTile(oldPos, newPos) {
     }
 }
 
-function tileCheck() {  // 核对并修正页面中方块与数组中方块一致
+// 核对并修正页面中方块与数组中方块一致
+function tileCheck() {
     for (let i = 0; i < 4; ++i) {
         for (let j = 0; j < 4; ++j) {
             let tile = getClass("tile-position-{0}-{1}".format(i + 1, j + 1));
@@ -358,12 +406,15 @@ function tileCheck() {  // 核对并修正页面中方块与数组中方块一�
     }
 }
 
+// 更新分数
 function updateScore() {
     let ScoreContainer = getClass("score-container")[0];
     let BestContainer = getClass("best-container")[0];
     currentScore += scoreAdd;
     ScoreContainer.innerHTML = currentScore;
-    BestContainer.innerHTML = bestScore > currentScore ? bestScore : currentScore;
+    bestScore = bestScore > currentScore ? bestScore : currentScore;
+    BestContainer.innerHTML = bestScore;
+
     if (scoreAdd !== 0) {
         let ScoreAdd = document.createElement("div");
         ScoreAdd.classList.add("score-addition");
@@ -373,6 +424,7 @@ function updateScore() {
     scoreAdd = 0;
 }
 
+// 判断游戏结束
 function overJudge() {
     // 判断是否还有空格
     for (let i = 0; i < 4; ++i) {
@@ -397,35 +449,59 @@ function overJudge() {
         }
     }
 
+    return true;
+}
+
+// 游戏结束弹出提示框
+function gameOver() {
     let gameMessage = getClass("game-message")[0];
     let p = gameMessage.getElementsByTagName("p")[0];
     p.innerHTML = "Game over!";
     gameMessage.classList.add("game-over");
-    return true;
+    let storage = window.localStorage;
+    storage.removeItem("gameStatus");
+    tileCheck();
+
+    gridStack = [];
+    redoStack = [];
+    revokeJudge();
+    redoJudge();
 }
 
+// 判断合出2048方块
 function winJudge() {
     for (let i = 0; i < 4; ++i) {
         for (let j = 0; j < 4; ++j) {
             if (tiles[i][j] === 2048 && winFlag === 0) {
-                let gameMessage = getClass("game-message")[0];
-                let p = gameMessage.getElementsByTagName("p")[0];
-                p.innerHTML = "You win!";
-                gameMessage.classList.add("game-won");
-                winFlag = 1;
+                return true;
             }
         }
     }
+    return false;
 }
 
+// 游戏胜利弹出提示框
+function gameWin() {
+    let gameMessage = getClass("game-message")[0];
+    let p = gameMessage.getElementsByTagName("p")[0];
+    p.innerHTML = "You win!";
+    gameMessage.classList.add("game-won");
+    winFlag = 1;
+
+    gridStack = [];
+    redoStack = [];
+    revokeJudge();
+    redoJudge();
+}
+
+// 游戏胜利继续游戏
 function keepGoing() {
     winFlag = -1;
     let gameMessage = getClass("game-message")[0];
     gameMessage.classList.remove("game-won");
 }
 
-let startX, startY;
-
+// 鼠标按下
 function mouseDown(e) {
     e = e || window.event;
     e.preventDefault();
@@ -433,10 +509,12 @@ function mouseDown(e) {
     startY = e.screenY || e.changedTouches[0].screenY;
 }
 
+// 鼠标移动
 function mouseMove(e) {
     e.preventDefault();
 }
 
+// 鼠标松开
 function mouseUp(e) {
     e = e || window.event;
     e.preventDefault();
@@ -461,7 +539,163 @@ function mouseUp(e) {
     }
 }
 
+// 本地化存储游戏
+function gameStore() {
+    let storage = window.localStorage;
+    let gameStatus = {
+        "grid": tiles,
+        "score": currentScore,
+        "winFlag": winFlag
+    };
+    let gameStatusStr = JSON.stringify(gameStatus);
+    storage.setItem("gameStatus", gameStatusStr);
+    let localBestScore = storage.getItem("bestScore");
+    if (localBestScore === null || parseInt(localBestScore) < bestScore) {
+        storage.setItem("bestScore", bestScore);
+    }
+}
 
+// 从本地化存储中载入游戏
+function gameLoad() {
+    let storage = window.localStorage;
+    let gameStatusStr = storage.getItem("gameStatus");
+    if (gameStatusStr === null) {
+        return false;
+    }
+    let gameStatus = JSON.parse(gameStatusStr);
+    tiles = gameStatus.grid;
+    currentScore = gameStatus.score;
+    winFlag = gameStatus.winFlag;
+    bestScore = parseInt(storage.getItem("bestScore"));
+
+    for (let i = 0; i < 4; ++i) {
+        for (let j = 0; j < 4; ++j) {
+            if (tiles[i][j]) {
+                draw_tile([i * 4 + j], 1);
+            }
+        }
+    }
+    return true;
+}
+
+// 棋盘中方块转化成字符串
+function grid2string() {
+    let gridStr = "";
+    for (let i = 0; i < 4; ++i) {
+        for (let j = 0; j < 4; ++j) {
+            gridStr = gridStr + tiles[i][j] + "-";
+        }
+    }
+    return gridStr;
+}
+
+// 字符串转化成棋盘方块
+function string2grid(str) {
+    let grids = str.split("-");
+    tileContainer.innerHTML = "";
+    for (let i = 0; i < 4; ++i) {
+        for (let j = 0; j < 4; ++j) {
+            tiles[i][j] = parseInt(grids[i * 4 + j]);
+            if (tiles[i][j]) {
+                draw_tile([i * 4 + j], 1);
+            }
+        }
+    }
+}
+
+// 向撤销栈中存入棋盘
+function gridStore(gridStr) {
+    if (gridStack.length > 400) {
+        gridStack.shift();
+    }
+    gridStack.push(gridStr);
+}
+
+// 判断撤销栈是否为空
+function revokeJudge() {
+    if (gridStack.length > 0) {
+        getClass("game-revoke")[0].classList.remove("disable");
+    } else {
+        getClass("game-revoke")[0].classList.add("disable");
+    }
+}
+
+// 判断重做栈是否为空
+function redoJudge() {
+    if (redoStack.length > 0) {
+        getClass("game-redo")[0].classList.remove("disable");
+    } else {
+        getClass("game-redo")[0].classList.add("disable");
+    }
+}
+
+// 撤销
+function moveRevoke() {
+    if (gridStack.length > 0) {
+        redoStack.push(grid2string());
+        string2grid(gridStack.pop());
+        gameStore();
+        revokeJudge();
+        redoJudge();
+    }
+}
+
+// 重做
+function moveRedo() {
+    if (redoStack.length > 0) {
+        gridStack.push(grid2string());
+        string2grid(redoStack.pop());
+        gameStore();
+        revokeJudge();
+        redoJudge();
+    }
+}
+
+// 初始化
+function Init() {
+    tileContainer = document.getElementsByClassName("tile-container")[0];
+    tiles = new Array(4);
+
+    for (let i = 0; i < 4; ++i) {
+        tiles[i] = new Array(4);
+        for (let j = 0; j < 4; ++j) {
+            tiles[i][j] = 0;
+        }
+    }
+
+    let restartButton = getClass("restart-game")[0];
+    restartButton.addEventListener("click", restart, false);
+
+    let retry = getClass("retry-button")[0];
+    retry.addEventListener("click", restart, false);
+    retry.addEventListener("touchend", restart, false);
+
+    let keepGoingButton = getClass("keep-playing-button")[0];
+    keepGoingButton.addEventListener("click", keepGoing, false);
+    keepGoingButton.addEventListener("touchend", keepGoing, false);
+
+    let gameContainer = getClass("game-container")[0];
+    gameContainer.addEventListener("mousedown", mouseDown, false);
+    gameContainer.addEventListener("mouseup", mouseUp, false);
+    gameContainer.addEventListener("mousemove", mouseMove, false);
+    gameContainer.addEventListener("touchstart", mouseDown, false);
+    gameContainer.addEventListener("touchend", mouseUp, false);
+    gameContainer.addEventListener("touchmove", mouseMove, false);
+
+    let gameRevoke = getClass("game-revoke")[0];
+    gameRevoke.addEventListener("click", moveRevoke, false);
+
+    let gameRedo = getClass("game-redo")[0];
+    gameRedo.addEventListener("click", moveRedo, false);
+
+    if (gameLoad()) {
+        updateScore();
+    } else {
+        restart();
+    }
+}
+
+// 重写string的format函数，使之可以格式化字符串
 String.prototype.format = function (args) {
     let result = this;
     if (arguments.length > 0) {
@@ -485,6 +719,7 @@ String.prototype.format = function (args) {
     return result;
 };
 
+// 根据类名获取节点
 function getClass(className, oParent) {
 
     if (!oParent) {
@@ -505,30 +740,16 @@ function getClass(className, oParent) {
     return arr;
 }
 
+// 页面载入
 window.onload = function () {
-    restart();
-
-    let restartButton = getClass("restart-game")[0];
-    restartButton.addEventListener("click", restart, false);
-
-    let retry = getClass("retry-button")[0];
-    retry.addEventListener("click", restart, false);
-    retry.addEventListener("touchend", restart, false);
-
-    let keepGoingButton = getClass("keep-playing-button")[0];
-    keepGoingButton.addEventListener("click", keepGoing, false);
-    keepGoingButton.addEventListener("touchend", keepGoing, false);
-
-    let gameContainer = getClass("game-container")[0];
-    gameContainer.addEventListener("mousedown", mouseDown, false);
-    gameContainer.addEventListener("mouseup", mouseUp, false);
-    gameContainer.addEventListener("mousemove", mouseMove, false);
-    gameContainer.addEventListener("touchstart", mouseDown, false);
-    gameContainer.addEventListener("touchend", mouseUp, false);
-    gameContainer.addEventListener("touchmove", mouseMove, false);
+    Init();
 };
 
+// 测试函数
 function test(c) {
+    if (c === undefined) {
+        c = 1;
+    }
     let cc = c;
     for (let i = 0; i < 4; ++i) {
         if (i % 2) {
@@ -545,12 +766,4 @@ function test(c) {
     }
     tiles[0][0] = c * 2;
     tileCheck();
-}
-
-let tiles = new Array(4);
-for (let i = 0; i < 4; ++i) {
-    tiles[i] = new Array(4);
-    for (let j = 0; j < 4; ++j) {
-        tiles[i][j] = 0;
-    }
 }

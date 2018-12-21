@@ -780,19 +780,19 @@ h1.title {
 }
 
 .game-rank > div > div:nth-child(1) {
-    width: 15%;
+    width: 13%;
 }
 
 .game-rank > div > div:nth-child(2) {
-    width: 35%;
+    width: 33%;
 }
 
 .game-rank > div > div:nth-child(3) {
-    width: 18%;
+    width: 23%;
 }
 
 .game-rank > div > div:nth-child(4) {
-    width: 32%;
+    width: 31%;
 }
 
 .game-rank > div > div:last-child {

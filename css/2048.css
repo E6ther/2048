@@ -181,7 +181,7 @@ h1.title {
     }
 }
 
-.game-container .game-message {
+.game-container .game-message, .game-container .game-congratulate {
     display: none;
     position: absolute;
     top: 0;
@@ -239,6 +239,44 @@ h1.title {
 
 .game-container .game-message.game-won, .game-container .game-message.game-over {
     display: block;
+}
+
+.game-container .game-congratulate p {
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 2rem;
+    margin-top: 33%;
+    display: block;
+}
+
+.game-container .game-congratulate.game-over {
+    display: block;
+}
+
+.game-container .game-congratulate .lower {
+    margin-top: 2rem;
+}
+
+.game-container .game-congratulate .lower input {
+    height: 2rem;
+    font-size: 1.4rem;
+    width: 70%;
+    background: #faf8ef;
+    color: #776e65;
+    border: 1px #bbada0 solid;
+}
+
+.new-record-submit {
+    display: block;
+    background: #8f7a66;
+    border-radius: 3px;
+    padding: 0 20px;
+    text-decoration: none;
+    color: #f9f6f2;
+    height: 2.5rem;
+    line-height: 2.5rem;
+    margin: 2rem auto;
+    width: 30%;
 }
 
 .game-intro {
@@ -711,13 +749,60 @@ h1.title {
     background: #444444;
 }
 
-
 .game-explanation {
     margin-top: 20px;
 }
 
+.game-rank {
+    width: 452px;
+    border: 3px #bbada0 solid;
+    box-sizing: border-box;
+}
+
+.game-rank > div {
+    border-bottom: 3px #bbada0 solid;
+    font-size: 0;
+}
+
+.game-rank > div:last-child {
+    border-bottom: none;
+}
+
+.game-rank > div > div {
+    display: inline-block;
+    border-right: 3px #bbada0 solid;
+    box-sizing: border-box;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 1rem;
+}
+
+.game-rank > div > div:nth-child(1) {
+    width: 15%;
+}
+
+.game-rank > div > div:nth-child(2) {
+    width: 35%;
+}
+
+.game-rank > div > div:nth-child(3) {
+    width: 18%;
+}
+
+.game-rank > div > div:nth-child(4) {
+    width: 32%;
+}
+
+.game-rank > div > div:last-child {
+    border-right: none;
+}
+
 /*
+------------------------------------------------------------------------------------------------------------------------
     小屏
+------------------------------------------------------------------------------------------------------------------------
  */
 @media screen and (max-width: 550px) {
     html, body {
@@ -778,6 +863,28 @@ h1.title {
         height: 30px;
         line-height: 30px;
         margin-left: 9px;
+    }
+
+    .game-container .game-congratulate p {
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+        margin-top: 20%;
+    }
+
+    .game-container .game-congratulate .lower {
+        margin-top: 2rem;
+    }
+
+    .game-container .game-congratulate .lower input {
+        height: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .new-record-submit {
+        height: 2rem;
+        line-height: 2rem;
+        margin: 30px auto;
     }
 
     .game-intro {
@@ -983,12 +1090,25 @@ h1.title {
         margin-top: 10px;
     }
 
+    .game-rank {
+        width: 280px;
+        border: 2px #bbada0 solid;
+    }
+
+    .game-rank > div {
+        border-bottom: 2px #bbada0 solid;
+    }
+
+    .game-rank > div > div {
+        border-right: 2px #bbada0 solid;
+    }
+
 }
 
 /*
-------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
     大屏
-------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
  */
 @media screen  and (min-width: 800px)and (min-height: 800px) {
 
@@ -1249,5 +1369,18 @@ h1.title {
 
     .game-explanation {
         margin-top: 40px;
+    }
+
+    .game-rank {
+        width: 663px;
+        border: 5px #bbada0 solid;
+    }
+
+    .game-rank > div {
+        border-bottom: 5px #bbada0 solid;
+    }
+
+    .game-rank > div > div {
+        border-right: 5px #bbada0 solid;
     }
 }

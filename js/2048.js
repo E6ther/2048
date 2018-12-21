@@ -7,6 +7,9 @@ let scoreAdd = 0;
 let gridStack = [];
 let redoStack = [];
 let startX, startY;
+let AjaxUrl = "//apis.e6ther.com/rank2048.php";
+let minScore;
+let revokeFlag = 0;
 
 // 向网页中添加新方块
 function draw_tile(Tile, tileType) {
@@ -95,7 +98,11 @@ function afterMove(newFlag, gridStr) {
     }
 
     if (overJudge()) {
-        gameOver();
+        if (revokeFlag === 0 && currentScore > minScore) {
+            newRecordShow();
+        } else {
+            gameOver();
+        }
     } else if (winFlag === 0 && winJudge()) {
         gameWin();
     } else {
@@ -317,6 +324,10 @@ function restart() {
     // 分数清零
     currentScore = 0;
 
+    // 清除标志
+    winFlag = 0;
+    revokeFlag = 0;
+
     // 去掉两种提示框
     let gameMessage = getClass("game-message")[0];
     gameMessage.classList.remove("game-over");
@@ -336,6 +347,7 @@ function restart() {
     updateScore();
     newTile();
     newTile();
+    rankLoad();
 }
 
 // 产生新方块
@@ -545,7 +557,8 @@ function gameStore() {
     let gameStatus = {
         "grid": tiles,
         "score": currentScore,
-        "winFlag": winFlag
+        "winFlag": winFlag,
+        "revokeFlag": revokeFlag
     };
     let gameStatusStr = JSON.stringify(gameStatus);
     storage.setItem("gameStatus", gameStatusStr);
@@ -566,6 +579,7 @@ function gameLoad() {
     tiles = gameStatus.grid;
     currentScore = gameStatus.score;
     winFlag = gameStatus.winFlag;
+    revokeFlag = gameStatus.revokeFlag;
     bestScore = parseInt(storage.getItem("bestScore"));
 
     for (let i = 0; i < 4; ++i) {
@@ -632,6 +646,7 @@ function redoJudge() {
 // 撤销
 function moveRevoke() {
     if (gridStack.length > 0) {
+        revokeFlag = 1;
         redoStack.push(grid2string());
         string2grid(gridStack.pop());
         gameStore();
@@ -649,6 +664,112 @@ function moveRedo() {
         revokeJudge();
         redoJudge();
     }
+}
+
+function rankLoad() {
+    let res;
+    minScore = 999999999;
+    let game_rank = getClass("game-rank")[0];
+    game_rank.innerHTML = "";
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: AjaxUrl,
+        success(result) {
+            if (result.status === 200) {
+                res = result.data;
+            }
+        },
+        error() {
+
+        },
+        complete() {
+            let rankData = document.createElement("div");
+            let id = document.createElement("div");
+            let nickname = document.createElement("div");
+            let score = document.createElement("div");
+            let date = document.createElement("div");
+
+            id.innerHTML = "Rank";
+            nickname.innerHTML = "Nickname";
+            score.innerHTML = "Score";
+            date.innerHTML = "Date";
+
+            rankData.appendChild(id);
+            rankData.appendChild(nickname);
+            rankData.appendChild(score);
+            rankData.appendChild(date);
+            game_rank.appendChild(rankData);
+
+            for (let i = 0; i < 10; ++i) {
+                rankData = document.createElement("div");
+                id = document.createElement("div");
+                nickname = document.createElement("div");
+                score = document.createElement("div");
+                date = document.createElement("div");
+
+                id.innerHTML = (i + 1);
+                id.title = (i + 1);
+                nickname.innerHTML = res[i].nickname;
+                nickname.title = res[i].nickname;
+                score.innerHTML = res[i].score;
+                score.title = res[i].score;
+                date.innerHTML = res[i].date;
+                date.title = res[i].date;
+
+                rankData.appendChild(id);
+                rankData.appendChild(nickname);
+                rankData.appendChild(score);
+                rankData.appendChild(date);
+                game_rank.appendChild(rankData);
+            }
+            minScore = parseInt(res[9].score);
+        }
+    });
+}
+
+function scoreSubmit() {
+    let nickname = getClass("lower")[1].children[0].value;
+    if (nickname === "") {
+        getClass("new-record-input")[0].focus();
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: AjaxUrl,
+        data: "nickname=" + nickname + "&score=" + currentScore,
+        success(result) {
+            console.log(result);
+        },
+        error() {
+
+        },
+        complete() {
+            newRecordClose();
+        }
+    });
+}
+
+function newRecordShow() {
+    getClass("game-congratulate")[0].classList.add("game-over");
+}
+
+function newRecordClose() {
+    getClass("game-congratulate")[0].classList.remove("game-over");
+    gameOver();
+}
+
+function focusAndbub(e) {
+    e = e || arguments.callee.caller.arguments[0] || window.event;
+    this.focus();
+    e.stopPropagation();
+}
+
+function stopBub(e) {
+    e = e || arguments.callee.caller.arguments[0] || window.event;
+    e.stopPropagation();
 }
 
 // 初始化
@@ -688,8 +809,24 @@ function Init() {
     let gameRedo = getClass("game-redo")[0];
     gameRedo.addEventListener("click", moveRedo, false);
 
+    let newRecordSubmit = getClass("new-record-submit")[0];
+    newRecordSubmit.addEventListener("click", scoreSubmit, false);
+    newRecordSubmit.addEventListener("touchend", scoreSubmit, false);
+
+    let newRecordInput = getClass("new-record-input")[0];
+    newRecordInput.addEventListener("click", focusAndbub, false);
+    newRecordInput.addEventListener("mousedown", stopBub, false);
+    newRecordInput.addEventListener("mousemove", stopBub, false);
+    newRecordInput.addEventListener("mouseup", stopBub, false);
+    newRecordInput.addEventListener("touchend", focusAndbub, false);
+    newRecordInput.onkeydown = function (e) {
+        e = e || arguments.callee.caller.arguments[0] || window.event;
+        e.stopPropagation();
+    };
+
     if (gameLoad()) {
         updateScore();
+        rankLoad();
     } else {
         restart();
     }
@@ -765,5 +902,13 @@ function test(c) {
         }
     }
     tiles[0][0] = c * 2;
+    tileCheck();
+}
+
+function Over() {
+    tiles[0] = [2, 8, 2, 8];
+    tiles[1] = [8, 2, 8, 2];
+    tiles[2] = [2, 8, 2, 8];
+    tiles[3] = [8, 2, 2, 8];
     tileCheck();
 }

@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="author" content="及,E6ther"/>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
     <link rel="stylesheet" href="css/2048.css">
     <link href="favicon.ico" rel="shortcut icon" type="image/x-icon"/>
-
+    <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <title>2048</title>
 </head>
 <body>
@@ -28,9 +30,19 @@
     <div class="game-container">
         <div class="game-message">
             <p>Game Over!</p>
+
             <div class="lower">
                 <a class="keep-playing-button">Keep going</a>
                 <a class="retry-button">Try again</a>
+            </div>
+        </div>
+
+        <div class="game-congratulate">
+            <p>Congratulations! <br/>
+                You've got a new record!</p>
+            <div class="lower">
+                <input type="text" class="new-record-input" placeholder="Please enter your nickname"/>
+                <a class="new-record-submit">Submit</a>
             </div>
         </div>
 
@@ -73,6 +85,16 @@
         When two tiles with the same number touch,
         they merge into one!
     </p>
+
+    <div class="game-rank">
+        <div>
+            <div>Rank</div>
+            <div>Nickname</div>
+            <div>Score</div>
+            <div>Date</div>
+        </div>
+
+    </div>
 </div>
 
 <script src="js/2048.js"></script>

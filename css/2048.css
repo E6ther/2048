@@ -755,28 +755,35 @@ h1.title {
 
 .game-rank {
     width: 452px;
-    border: 3px #bbada0 solid;
     box-sizing: border-box;
+    margin-top: 20px;
 }
 
 .game-rank > div {
-    border-bottom: 3px #bbada0 solid;
-    font-size: 0;
+    height: 33px;
 }
 
 .game-rank > div:last-child {
+    height: 30px;
+}
+
+.game-rank > div:last-child > div {
+    height: 30px;
     border-bottom: none;
 }
 
 .game-rank > div > div {
     display: inline-block;
     border-right: 3px #bbada0 solid;
+    border-bottom: 3px #bbada0 solid;
     box-sizing: border-box;
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
     font-size: 1rem;
+    height: 33px;
+    line-height: 30px;
 }
 
 .game-rank > div > div:nth-child(1) {
@@ -1092,15 +1099,25 @@ h1.title {
 
     .game-rank {
         width: 280px;
-        border: 2px #bbada0 solid;
     }
 
     .game-rank > div {
-        border-bottom: 2px #bbada0 solid;
+        height: 30px;
+    }
+
+    .game-rank > div:last-child {
+        height: 28px;
+    }
+
+    .game-rank > div:last-child > div {
+        height: 28px;
     }
 
     .game-rank > div > div {
         border-right: 2px #bbada0 solid;
+        border-bottom: 2px #bbada0 solid;
+        height: 30px;
+        line-height: 28px;
     }
 
 }
@@ -1373,14 +1390,24 @@ h1.title {
 
     .game-rank {
         width: 663px;
-        border: 5px #bbada0 solid;
     }
 
     .game-rank > div {
-        border-bottom: 5px #bbada0 solid;
+        height: 38px;
+    }
+
+    .game-rank > div:last-child {
+        height: 33px;
+    }
+
+    .game-rank > div:last-child > div {
+        height: 33px;
     }
 
     .game-rank > div > div {
         border-right: 5px #bbada0 solid;
+        border-bottom: 5px #bbada0 solid;
+        height: 38px;
+        line-height: 33px;
     }
 }

@@ -99,6 +99,7 @@ function afterMove(newFlag, gridStr) {
 
     if (overJudge()) {
         if (revokeFlag === 0 && currentScore > minScore) {
+            gameOver();
             newRecordShow();
         } else {
             gameOver();
@@ -426,7 +427,7 @@ function updateScore() {
     ScoreContainer.innerHTML = currentScore;
     bestScore = bestScore > currentScore ? bestScore : currentScore;
     BestContainer.innerHTML = bestScore;
-
+    window.localStorage.setItem("bestScore", bestScore);
     if (scoreAdd !== 0) {
         let ScoreAdd = document.createElement("div");
         ScoreAdd.classList.add("score-addition");
@@ -571,6 +572,9 @@ function gameStore() {
 // 从本地化存储中载入游戏
 function gameLoad() {
     let storage = window.localStorage;
+
+    bestScore = parseInt(storage.getItem("bestScore") === null ? 0 : storage.getItem("bestScore"));
+
     let gameStatusStr = storage.getItem("gameStatus");
     if (gameStatusStr === null) {
         return false;
@@ -580,7 +584,6 @@ function gameLoad() {
     currentScore = gameStatus.score;
     winFlag = gameStatus.winFlag;
     revokeFlag = gameStatus.revokeFlag;
-    bestScore = parseInt(storage.getItem("bestScore"));
 
     for (let i = 0; i < 4; ++i) {
         for (let j = 0; j < 4; ++j) {
@@ -666,6 +669,7 @@ function moveRedo() {
     }
 }
 
+// 读取排行榜
 function rankLoad() {
     let res;
     minScore = 999999999;
@@ -701,7 +705,7 @@ function rankLoad() {
             rankData.appendChild(date);
             game_rank.appendChild(rankData);
 
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < res.length; ++i) {
                 rankData = document.createElement("div");
                 id = document.createElement("div");
                 nickname = document.createElement("div");
@@ -723,11 +727,12 @@ function rankLoad() {
                 rankData.appendChild(date);
                 game_rank.appendChild(rankData);
             }
-            minScore = parseInt(res[9].score);
+            minScore = parseInt(res[res.length - 1].score);
         }
     });
 }
 
+// 上传分数
 function scoreSubmit() {
     let nickname = getClass("lower")[1].children[0].value;
     if (nickname === "") {
@@ -752,21 +757,25 @@ function scoreSubmit() {
     });
 }
 
+// 显示新纪录提示框
 function newRecordShow() {
     getClass("game-congratulate")[0].classList.add("game-over");
 }
 
+// 关闭新纪录提示框
 function newRecordClose() {
     getClass("game-congratulate")[0].classList.remove("game-over");
-    gameOver();
+    // gameOver();
 }
 
+// 选中并阻止冒泡事件
 function focusAndbub(e) {
     e = e || arguments.callee.caller.arguments[0] || window.event;
     this.focus();
     e.stopPropagation();
 }
 
+// 阻止冒泡事件
 function stopBub(e) {
     e = e || arguments.callee.caller.arguments[0] || window.event;
     e.stopPropagation();
@@ -882,7 +891,7 @@ window.onload = function () {
     Init();
 };
 
-// 测试函数
+// 测试函数1
 function test(c) {
     if (c === undefined) {
         c = 1;
@@ -905,6 +914,7 @@ function test(c) {
     tileCheck();
 }
 
+// 测试函数2
 function Over() {
     tiles[0] = [2, 8, 2, 8];
     tiles[1] = [8, 2, 8, 2];

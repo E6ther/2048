@@ -229,7 +229,7 @@ h1.title {
 }
 
 .game-container .game-message.game-won {
-    background: rgba(237, 194, 46, 0.5);
+    background: rgba(187, 144, 46, 0.5);
     color: #f9f6f2;
 }
 
@@ -241,7 +241,12 @@ h1.title {
     display: block;
 }
 
+.game-container .game-congratulate {
+    background: rgba(187, 144, 46, 0.5);
+}
+
 .game-container .game-congratulate p {
+    color: #f9f6f2;
     font-size: 2rem;
     font-weight: bold;
     line-height: 2rem;
